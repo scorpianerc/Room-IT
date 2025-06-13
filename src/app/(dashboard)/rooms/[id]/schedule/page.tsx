@@ -59,32 +59,9 @@ export default function RoomSchedulePage() {
   }, [])
 
   // Fetch room details (hanya sekali)
-  useEffect(() => {
-    if (roomId) {
-      fetchRoomDetails()
-    }
-  }, [roomId])
+  const fetchRoomDetails = useCallback(async () => {
+    if (!roomId) return
 
-  // Fetch bookings saat tanggal berubah
-  useEffect(() => {
-    if (roomId && selectedDate) {
-      fetchBookings()
-    }
-  }, [roomId, selectedDate])
-
-  // Handle URL parameters saat pertama load
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search)
-    const dateParam = urlParams.get('date')
-    const startTimeParam = urlParams.get('startTime')
-    const endTimeParam = urlParams.get('endTime')
-
-    if (dateParam) setSelectedDate(dateParam)
-    if (startTimeParam) setSelectedStartTime(startTimeParam)
-    if (endTimeParam) setSelectedEndTime(endTimeParam)
-  }, [])
-
-  const fetchRoomDetails = async () => {
     try {
       const response = await fetch(`/api/rooms/${roomId}`)
       if (response.ok) {
@@ -99,9 +76,12 @@ export default function RoomSchedulePage() {
     } finally {
       setRoomLoading(false)
     }
-  }
+  }, [roomId])
 
+  // Fetch bookings saat tanggal berubah
   const fetchBookings = useCallback(async () => {
+    if (!roomId || !selectedDate) return
+
     setBookingsLoading(true)
     setError('')
     
@@ -121,19 +101,30 @@ export default function RoomSchedulePage() {
     }
   }, [roomId, selectedDate])
 
+  useEffect(() => {
+    fetchRoomDetails()
+  }, [fetchRoomDetails])
+
+  useEffect(() => {
+    fetchBookings()
+  }, [fetchBookings])
+
+  // Handle URL parameters saat pertama load
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const dateParam = urlParams.get('date')
+    const startTimeParam = urlParams.get('startTime')
+    const endTimeParam = urlParams.get('endTime')
+
+    if (dateParam) setSelectedDate(dateParam)
+    if (startTimeParam) setSelectedStartTime(startTimeParam)
+    if (endTimeParam) setSelectedEndTime(endTimeParam)
+  }, [])
+
   const formatTime = (dateString: string) => {
     return new Date(dateString).toLocaleTimeString('id-ID', {
       hour: '2-digit',
       minute: '2-digit'
-    })
-  }
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('id-ID', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
     })
   }
 
@@ -179,6 +170,18 @@ export default function RoomSchedulePage() {
       )
     })
   }, [bookings, selectedDate, selectedStartTime, selectedEndTime])
+
+  const handleTimeChange = () => {
+    // Redirect back to schedule page with new time parameters
+    const params = new URLSearchParams({
+      roomId: roomId,
+      date: selectedDate,
+      startTime: selectedStartTime,
+      endTime: selectedEndTime,
+    })
+    
+    router.push(`/rooms/${roomId}/schedule?${params.toString()}`)
+  }
 
   // Loading state untuk room details
   if (roomLoading) {

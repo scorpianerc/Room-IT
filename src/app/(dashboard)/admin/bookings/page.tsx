@@ -2,7 +2,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Calendar, Clock, MapPin, Users, FileText, Phone, User, Check, X, Eye} from 'lucide-react'
+import { Calendar, Clock, MapPin, Users, FileText, Phone, User, Check, X } from 'lucide-react'
 import Image from 'next/image'
 
 interface Booking {
@@ -210,7 +210,7 @@ export default function AdminBookingsPage() {
             {['ALL', 'PENDING', 'APPROVED', 'REJECTED'].map((status) => (
               <button
                 key={status}
-                onClick={() => setFilter(status as any)}
+                onClick={() => setFilter(status as 'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   filter === status
                     ? 'bg-blue-600 text-white'

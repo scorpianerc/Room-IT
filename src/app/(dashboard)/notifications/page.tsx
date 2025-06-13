@@ -2,7 +2,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Bell, Check, X, ChevronRight, Trash2, Calendar, Clock } from 'lucide-react'
+import { Bell, Check, ChevronRight, Trash2, Clock } from 'lucide-react'
 import Link from 'next/link'
 
 interface Notification {

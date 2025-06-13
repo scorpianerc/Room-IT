@@ -1,9 +1,10 @@
 // src/app/(dashboard)/booking/create/page.tsx
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useEffect, useState, useCallback } from 'react'
+import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeft, Upload, X, Calendar, Clock, Users, MapPin, Edit } from 'lucide-react'
+import Link from 'next/link'
 import Image from 'next/image'
 
 interface Room {
@@ -19,7 +20,7 @@ interface Room {
 
 export default function CreateBookingPage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
+  const searchParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '')
   
   const [room, setRoom] = useState<Room | null>(null)
   const [loading, setLoading] = useState(false)
@@ -39,13 +40,9 @@ export default function CreateBookingPage() {
     phoneNumber: '',
   })
 
-  useEffect(() => {
-    if (formData.roomId) {
-      fetchRoomDetails()
-    }
-  }, [formData.roomId])
-
-  const fetchRoomDetails = async () => {
+  const fetchRoomDetails = useCallback(async () => {
+    if (!formData.roomId) return
+    
     try {
       const response = await fetch(`/api/rooms/${formData.roomId}`)
       if (response.ok) {
@@ -55,7 +52,11 @@ export default function CreateBookingPage() {
     } catch (error) {
       console.error('Failed to fetch room details:', error)
     }
-  }
+  }, [formData.roomId])
+
+  useEffect(() => {
+    fetchRoomDetails()
+  }, [fetchRoomDetails])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({

@@ -54,8 +54,8 @@ export default function Register() {
         const data = await response.json()
         setError(data.error || 'Terjadi kesalahan')
       }
-    } catch (error) {
-      setError('Terjadi kesalahan jaringan')
+    } catch {
+      
     } finally {
       setLoading(false)
     }

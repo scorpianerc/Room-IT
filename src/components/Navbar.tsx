@@ -2,7 +2,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Bell, User, Menu, X, LogOut, Home, Building, FileText, BarChart3, Settings, Shield, Calendar } from 'lucide-react'
+import { Bell, User, Menu, X, LogOut, Home, Building, FileText, BarChart3, Shield, Calendar } from 'lucide-react'
 import { useSession, signOut } from 'next-auth/react'
 import Link from 'next/link'
 import Image from 'next/image'

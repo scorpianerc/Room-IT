@@ -1,7 +1,7 @@
 // src/app/(dashboard)/notifications/[id]/page.tsx
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeft, Calendar, Clock, CheckCircle, AlertCircle, XCircle, Bell } from 'lucide-react'
 
@@ -22,13 +22,9 @@ export default function NotificationDetailPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  useEffect(() => {
-    if (notificationId) {
-      fetchNotificationDetail()
-    }
-  }, [notificationId])
+  const fetchNotificationDetail = useCallback(async () => {
+    if (!notificationId) return
 
-  const fetchNotificationDetail = async () => {
     try {
       const response = await fetch(`/api/notifications/${notificationId}`)
       if (response.ok) {
@@ -50,7 +46,11 @@ export default function NotificationDetailPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [notificationId])
+
+  useEffect(() => {
+    fetchNotificationDetail()
+  }, [fetchNotificationDetail])
 
   const markAsRead = async () => {
     try {
