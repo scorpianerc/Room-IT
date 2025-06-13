@@ -2,7 +2,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Calendar, Clock, MapPin, Users, FileText, Phone, User, Check, X, Eye} from 'lucide-react'
+import { Calendar, Clock, MapPin, Users, FileText, Phone, User, Check, X } from 'lucide-react'
 
 interface Booking {
   id: string
