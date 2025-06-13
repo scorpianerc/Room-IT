@@ -2,9 +2,8 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { ArrowLeft, Upload, X, Calendar, Clock, Users, MapPin, Edit } from 'lucide-react'
-import Link from 'next/link'
 import Image from 'next/image'
 
 interface Room {
@@ -100,18 +99,6 @@ export default function CreateBookingPage() {
       }
     }
     return times
-  }
-
-  const handleTimeChange = () => {
-    // Redirect back to schedule page with new time parameters
-    const params = new URLSearchParams({
-      roomId: formData.roomId,
-      date: formData.date,
-      startTime: formData.startTime,
-      endTime: formData.endTime,
-    })
-    
-    router.push(`/rooms/${formData.roomId}/schedule?${params.toString()}`)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -280,7 +267,15 @@ export default function CreateBookingPage() {
               <div className="flex space-x-3">
                 <button
                   type="button"
-                  onClick={handleTimeChange}
+                  onClick={() => {
+                    const params = new URLSearchParams({
+                      roomId: formData.roomId,
+                      date: formData.date,
+                      startTime: formData.startTime,
+                      endTime: formData.endTime,
+                    })
+                    router.push(`/rooms/${formData.roomId}/schedule?${params.toString()}`)
+                  }}
                   className="flex-1 bg-blue-600 text-white p-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
                 >
                   Cek Ketersediaan Waktu Baru

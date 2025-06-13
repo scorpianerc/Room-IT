@@ -171,18 +171,6 @@ export default function RoomSchedulePage() {
     })
   }, [bookings, selectedDate, selectedStartTime, selectedEndTime])
 
-  const handleTimeChange = () => {
-    // Redirect back to schedule page with new time parameters
-    const params = new URLSearchParams({
-      roomId: roomId,
-      date: selectedDate,
-      startTime: selectedStartTime,
-      endTime: selectedEndTime,
-    })
-    
-    router.push(`/rooms/${roomId}/schedule?${params.toString()}`)
-  }
-
   // Loading state untuk room details
   if (roomLoading) {
     return (

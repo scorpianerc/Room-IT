@@ -22,6 +22,19 @@ export default function NotificationDetailPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
+  const markAsRead = useCallback(async () => {
+    try {
+      await fetch(`/api/notifications/${notificationId}/read`, {
+        method: 'PATCH'
+      })
+      if (notification) {
+        setNotification({ ...notification, read: true })
+      }
+    } catch (error) {
+      console.error('Failed to mark as read:', error)
+    }
+  }, [notificationId, notification])
+
   const fetchNotificationDetail = useCallback(async () => {
     if (!notificationId) return
 
@@ -46,24 +59,11 @@ export default function NotificationDetailPage() {
     } finally {
       setLoading(false)
     }
-  }, [notificationId])
+  }, [notificationId, markAsRead])
 
   useEffect(() => {
     fetchNotificationDetail()
   }, [fetchNotificationDetail])
-
-  const markAsRead = async () => {
-    try {
-      await fetch(`/api/notifications/${notificationId}/read`, {
-        method: 'PATCH'
-      })
-      if (notification) {
-        setNotification({ ...notification, read: true })
-      }
-    } catch (error) {
-      console.error('Failed to mark as read:', error)
-    }
-  }
 
   const deleteNotification = async () => {
     if (!confirm('Hapus notifikasi ini?')) {
