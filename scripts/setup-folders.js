@@ -1,6 +1,7 @@
 // scripts/setup-folders.js
 const fs = require('fs')
 const path = require('path')
+const { execSync } = require('child_process')
 
 const foldersToCreate = [
   'public/uploads',
@@ -34,3 +35,12 @@ gitkeepPaths.forEach(gitkeepPath => {
 })
 
 console.log('🎉 Setup complete!')
+
+// Generate Prisma Client
+try {
+  console.log('🔄 Generating Prisma Client...')
+  execSync('npx prisma generate', { stdio: 'inherit' })
+  console.log('✅ Prisma Client generated successfully!')
+} catch (error) {
+  console.log('⚠️ Prisma generate will be handled by build script')
+}
