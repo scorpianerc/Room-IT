@@ -1,12 +1,16 @@
-// src/app/api/admin/bookings/[id]/status/route.ts (update existing file)
+// src/app/api/admin/bookings/[id]/status/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
+interface RouteParams {
+  params: Promise<{ id: string }>
+}
+
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: RouteParams
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -20,6 +24,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
+    const { id } = await context.params
     const { status } = await request.json()
 
     if (!['APPROVED', 'REJECTED'].includes(status)) {
@@ -27,7 +32,7 @@ export async function PATCH(
     }
 
     const booking = await prisma.booking.update({
-      where: { id: params.id },
+      where: { id },
       data: { status },
       include: {
         user: true,
