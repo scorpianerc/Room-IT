@@ -4,13 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
     "db:seed": "tsx scripts/seed.ts",
     "db:seed:super": "tsx scripts/seedsuper.ts",
     "setup:folders": "node scripts/setup-folders.js",
-    "postinstall": "npm run setup:folders"
+    "postinstall": "npm run setup:folders && prisma generate"
   },
 
   "dependencies": {
