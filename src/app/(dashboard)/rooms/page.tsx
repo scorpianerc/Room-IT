@@ -2,7 +2,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, Check, MapPin } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 
@@ -25,6 +25,8 @@ export default function RoomsPage() {
   const [rooms, setRooms] = useState<Room[]>([])
   const [buildings, setBuildings] = useState<Building[]>([])
   const [selectedBuilding, setSelectedBuilding] = useState<string>('')
+  const [selectedBuildingName, setSelectedBuildingName] = useState<string>('Semua Gedung')
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -39,6 +41,21 @@ export default function RoomsPage() {
       fetchRooms()
     }
   }, [selectedBuilding])
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const dropdown = document.getElementById('building-dropdown')
+      if (dropdown && !dropdown.contains(event.target as Node)) {
+        setIsDropdownOpen(false)
+      }
+    }
+
+    if (isDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isDropdownOpen])
 
   const fetchBuildings = async () => {
     try {
@@ -81,6 +98,18 @@ export default function RoomsPage() {
     }
   }
 
+  const handleBuildingSelect = (buildingId: string, buildingName: string) => {
+    setSelectedBuilding(buildingId)
+    setSelectedBuildingName(buildingName)
+    setIsDropdownOpen(false)
+  }
+
+  const handleShowAll = () => {
+    setSelectedBuilding('')
+    setSelectedBuildingName('Semua Gedung')
+    setIsDropdownOpen(false)
+  }
+
   if (loading) {
     return (
       <div className="px-4 py-6">
@@ -91,29 +120,89 @@ export default function RoomsPage() {
 
   return (
     <div className="px-4 py-6">
-      {/* Building Filter */}
+      {/* Header */}
       <div className="mb-6">
-        <div className="relative">
-          <select
-            value={selectedBuilding}
-            onChange={(e) => setSelectedBuilding(e.target.value)}
-            className="w-full p-3 pr-10 border border-gray-300 rounded-lg bg-white appearance-none focus:outline-none focus:ring-2 focus:ring-blue-600 text-black"
+        <h1 className="text-2xl font-bold text-white mb-2">Ruangan</h1>
+        <p className="text-gray-300">Pilih ruangan untuk melihat jadwal dan melakukan pemesanan</p>
+      </div>
+
+      {/* Custom Building Filter Dropdown */}
+      <div className="mb-6">
+        <div className="relative" id="building-dropdown">
+          <button
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            className="w-full flex items-center justify-between p-4 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-black transition-colors hover:bg-gray-50"
           >
-            <option value="">Semua Gedung</option>
-            {buildings.map((building) => (
-              <option key={building.id} value={building.id}>
-                {building.name}
-              </option>
-            ))}
-          </select>
-          <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+            <div className="flex items-center">
+              <span className="text-left truncate">{selectedBuildingName}</span>
+            </div>
+            <ChevronDown 
+              className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${
+                isDropdownOpen ? 'transform rotate-180' : ''
+              }`} 
+            />
+          </button>
+          
+          {/* Dropdown Menu */}
+          {isDropdownOpen && (
+            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
+              {/* Show All Option */}
+              <button
+                onClick={handleShowAll}
+                className={`w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-50 transition-colors border-b border-gray-100 ${
+                  selectedBuilding === '' ? 'bg-blue-50 text-blue-700' : 'text-gray-900'
+                }`}
+              >
+                <span>Semua Gedung</span>
+                {selectedBuilding === '' && (
+                  <Check className="w-5 h-5 text-blue-600" />
+                )}
+              </button>
+
+              {/* Building Options */}
+              {buildings.map((building) => (
+                <button
+                  key={building.id}
+                  onClick={() => handleBuildingSelect(building.id, building.name)}
+                  className={`w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-50 transition-colors ${
+                    selectedBuilding === building.id ? 'bg-blue-50 text-blue-700' : 'text-gray-900'
+                  }`}
+                >
+                  <div>
+                    <div className="font-medium">{building.name}</div>
+                    {building.code && (
+                      <div className="text-sm text-gray-500">{building.code}</div>
+                    )}
+                  </div>
+                  {selectedBuilding === building.id && (
+                    <Check className="w-5 h-5 text-blue-600" />
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
+      {/* Rooms List */}
       <div className="space-y-4">
         {rooms.length === 0 ? (
           <div className="bg-white rounded-lg p-6 text-center">
-            <p className="text-gray-500">Tidak ada ruangan ditemukan</p>
+            <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-500 mb-2">
+              {selectedBuilding 
+                ? `Tidak ada ruangan ditemukan di ${selectedBuildingName}`
+                : 'Tidak ada ruangan ditemukan'
+              }
+            </p>
+            {selectedBuilding && (
+              <button
+                onClick={handleShowAll}
+                className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+              >
+                Lihat semua ruangan
+              </button>
+            )}
           </div>
         ) : (
           rooms.map((room) => (
@@ -129,14 +218,12 @@ export default function RoomsPage() {
                         height={120}
                         className="w-full h-full object-cover"
                         onError={(e) => {
-                          // Fallback jika gambar gagal dimuat
                           const target = e.target as HTMLImageElement;
                           target.style.display = 'none';
                           target.nextElementSibling?.classList.remove('hidden');
                         }}
                       />
                     ) : null}
-                    {/* Fallback placeholder */}
                     <div className={`w-full h-full bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg flex items-center justify-center ${room.image ? 'hidden' : ''}`}>
                       <span className="text-white text-xs font-bold">ROOM</span>
                     </div>

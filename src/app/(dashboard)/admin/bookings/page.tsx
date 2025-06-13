@@ -2,7 +2,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Calendar, Clock, MapPin, Users, FileText, Phone, User, Check, X, Eye, Filter } from 'lucide-react'
+import { Calendar, Clock, MapPin, Users, FileText, Phone, User, Check, X, Eye} from 'lucide-react'
 import Image from 'next/image'
 
 interface Booking {
@@ -206,7 +206,6 @@ export default function AdminBookingsPage() {
       {/* Filter */}
       <div className="bg-white rounded-lg p-4 mb-6">
         <div className="flex items-center space-x-4">
-          <Filter className="w-5 h-5 text-gray-600" />
           <div className="flex flex-wrap gap-2">
             {['ALL', 'PENDING', 'APPROVED', 'REJECTED'].map((status) => (
               <button

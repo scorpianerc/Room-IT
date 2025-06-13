@@ -2,7 +2,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Building, Plus, Edit, Trash2, MapPin, Users, Settings, Upload, X } from 'lucide-react'
+import { Building, Plus, Edit, Trash2, MapPin, Users, Settings, Upload, X, Check, ChevronDown } from 'lucide-react'
 import Image from 'next/image'
 
 interface Building {
@@ -227,7 +227,7 @@ export default function AdminRoomsPage() {
   )
 }
 
-// Room Modal Component with Image Upload
+// Room Modal Component with Custom Dropdown
 function RoomModal({ 
   room, 
   buildings, 
@@ -250,16 +250,41 @@ function RoomModal({
   const [loading, setLoading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
 
+  // Building dropdown states
+  const [selectedBuildingName, setSelectedBuildingName] = useState(
+    room?.building.name || 'Pilih Gedung'
+  )
+  const [isBuildingDropdownOpen, setIsBuildingDropdownOpen] = useState(false)
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const dropdown = document.getElementById('modal-building-dropdown')
+      if (dropdown && !dropdown.contains(event.target as Node)) {
+        setIsBuildingDropdownOpen(false)
+      }
+    }
+
+    if (isBuildingDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isBuildingDropdownOpen])
+
+  const handleBuildingSelect = (buildingId: string, buildingName: string) => {
+    setFormData({ ...formData, buildingId })
+    setSelectedBuildingName(buildingName)
+    setIsBuildingDropdownOpen(false)
+  }
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      // Validate file type
       if (!file.type.startsWith('image/')) {
         alert('File harus berupa gambar')
         return
       }
       
-      // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         alert('Ukuran file maksimal 5MB')
         return
@@ -267,7 +292,6 @@ function RoomModal({
 
       setSelectedImage(file)
       
-      // Create preview
       const reader = new FileReader()
       reader.onload = (e) => {
         setImagePreview(e.target?.result as string)
@@ -289,7 +313,6 @@ function RoomModal({
     setUploadProgress(0)
 
     try {
-      // Create FormData for file upload
       const formDataToSend = new FormData()
       formDataToSend.append('name', formData.name)
       formDataToSend.append('capacity', formData.capacity.toString())
@@ -306,7 +329,6 @@ function RoomModal({
       
       const method = room ? 'PUT' : 'POST'
 
-      // Simulate upload progress for better UX
       const progressInterval = setInterval(() => {
         setUploadProgress(prev => {
           if (prev >= 90) {
@@ -410,7 +432,6 @@ function RoomModal({
                 </div>
               )}
               
-              {/* Upload Progress */}
               {loading && uploadProgress > 0 && (
                 <div className="mt-2">
                   <div className="flex justify-between text-sm text-gray-600 mb-1">
@@ -459,23 +480,52 @@ function RoomModal({
               </div>
             </div>
 
+            {/* Custom Building Dropdown */}
             <div>
               <label className="block text-sm font-medium text-black mb-2">
                 Gedung *
               </label>
-              <select
-                value={formData.buildingId}
-                onChange={(e) => setFormData({ ...formData, buildingId: e.target.value })}
-                required
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-black"
-              >
-                <option value="">Pilih Gedung</option>
-                {buildings.map((building) => (
-                  <option key={building.id} value={building.id}>
-                    {building.name}
-                  </option>
-                ))}
-              </select>
+              <div className="relative" id="modal-building-dropdown">
+                <button
+                  type="button"
+                  onClick={() => setIsBuildingDropdownOpen(!isBuildingDropdownOpen)}
+                  className={`w-full flex items-center justify-between p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-black transition-colors hover:bg-gray-50 ${
+                    !formData.buildingId ? 'text-gray-500' : ''
+                  }`}
+                >
+                  <span className="text-left truncate">{selectedBuildingName}</span>
+                  <ChevronDown 
+                    className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${
+                      isBuildingDropdownOpen ? 'transform rotate-180' : ''
+                    }`} 
+                  />
+                </button>
+                
+                {isBuildingDropdownOpen && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
+                    {buildings.map((building) => (
+                      <button
+                        key={building.id}
+                        type="button"
+                        onClick={() => handleBuildingSelect(building.id, building.name)}
+                        className={`w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-50 transition-colors ${
+                          formData.buildingId === building.id ? 'bg-blue-50 text-blue-700' : 'text-gray-900'
+                        }`}
+                      >
+                        <div>
+                          <div className="font-medium">{building.name}</div>
+                          {building.code && (
+                            <div className="text-sm text-gray-500">{building.code}</div>
+                          )}
+                        </div>
+                        {formData.buildingId === building.id && (
+                          <Check className="w-5 h-5 text-blue-600" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
             <div>

@@ -1,3 +1,4 @@
+// prisma/schema.prisma
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,15 +9,15 @@ datasource db {
 }
 
 model User {
-  id            String         @id @default(cuid())
+  id            String    @id @default(cuid())
   name          String?
-  email         String         @unique
+  email         String    @unique
   password      String
-  role          Role           @default(STUDENT)
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  accounts      Account[]
-  sessions      Session[]
+  emailVerified DateTime?
+  role          Role      @default(STUDENT)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
   bookings      Booking[]
   notifications Notification[]
 }
@@ -25,58 +26,63 @@ model Building {
   id    String @id @default(cuid())
   name  String
   code  String @unique
+  
   rooms Room[]
-
+  
   @@map("buildings")
 }
 
 model Room {
-  id         String    @id @default(cuid())
-  name       String
-  capacity   Int
-  facilities String?
-  image      String?
-  buildingId String
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  bookings   Booking[]
-  building   Building  @relation(fields: [buildingId], references: [id], onDelete: Cascade)
-
+  id          String   @id @default(cuid())
+  name        String
+  capacity    Int
+  facilities  String?  @db.Text
+  image       String?
+  buildingId  String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  building    Building @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+  bookings    Booking[]
+  
   @@map("rooms")
 }
 
 model Booking {
-  id               String        @id @default(cuid())
-  title            String
-  description      String?
-  startTime        DateTime
-  endTime          DateTime
-  status           BookingStatus @default(PENDING)
-  proposalUrl      String?
-  proposalName     String?
-  isPublic         Boolean       @default(false)
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
-  userId           String
-  roomId           String
-  coordinatorName  String?
+  id              String        @id @default(cuid())
+  title           String
+  description     String?       @db.Text
+  startTime       DateTime
+  endTime         DateTime
+  status          BookingStatus @default(PENDING)
+  proposalUrl     String?
+  proposalName    String?
+  isPublic        Boolean       @default(false)
   participantCount Int?
-  phoneNumber      String?
-  room             Room          @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  coordinatorName String?
+  phoneNumber     String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  userId          String
+  roomId          String
+  
+  user            User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  room            Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  
   @@map("bookings")
 }
 
 model Notification {
   id        String   @id @default(cuid())
   title     String
-  message   String
+  message   String   @db.Text
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
+  
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
   @@map("notifications")
 }
 

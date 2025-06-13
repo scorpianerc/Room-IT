@@ -2,7 +2,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Users, Plus, Edit, Trash2, Shield, User, Search, Filter, Eye, EyeOff, Lock } from 'lucide-react'
+import { Users, Plus, Edit, Trash2, Shield, User, Search, Filter, Eye, EyeOff, Lock, Check, ChevronDown } from 'lucide-react'
 
 interface User {
   id: string
@@ -25,9 +25,28 @@ export default function AdminUsersPage() {
   const [editingUser, setEditingUser] = useState<User | null>(null)
   const [showPasswordModal, setShowPasswordModal] = useState<User | null>(null)
 
+  // Role filter dropdown states
+  const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false)
+  const [selectedRoleName, setSelectedRoleName] = useState('Semua Role')
+
   useEffect(() => {
     fetchUsers()
   }, [])
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const dropdown = document.getElementById('role-filter-dropdown')
+      if (dropdown && !dropdown.contains(event.target as Node)) {
+        setIsRoleDropdownOpen(false)
+      }
+    }
+
+    if (isRoleDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isRoleDropdownOpen])
 
   const fetchUsers = async () => {
     try {
@@ -87,6 +106,12 @@ export default function AdminUsersPage() {
       console.error('Failed to reset password:', error)
       alert('Terjadi kesalahan')
     }
+  }
+
+  const handleRoleFilter = (role: 'ALL' | 'STUDENT' | 'ADMIN' | 'SUPER_ADMIN', roleName: string) => {
+    setRoleFilter(role)
+    setSelectedRoleName(roleName)
+    setIsRoleDropdownOpen(false)
   }
 
   const formatDate = (dateString: string) => {
@@ -220,19 +245,74 @@ export default function AdminUsersPage() {
             />
           </div>
 
-          {/* Role Filter */}
+          {/* Custom Role Filter Dropdown */}
           <div className="flex items-center space-x-2">
             <Filter className="w-4 h-4 text-gray-600" />
-            <select
-              value={roleFilter}
-              onChange={(e) => setRoleFilter(e.target.value as any)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-black"
-            >
-              <option value="ALL">Semua Role</option>
-              <option value="STUDENT">Student</option>
-              <option value="ADMIN">Admin</option>
-              <option value="SUPER_ADMIN">Super Admin</option>
-            </select>
+            <div className="relative" id="role-filter-dropdown">
+              <button
+                onClick={() => setIsRoleDropdownOpen(!isRoleDropdownOpen)}
+                className="flex items-center justify-between px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-black bg-white hover:bg-gray-50 transition-colors min-w-[140px]"
+              >
+                <span className="text-sm">{selectedRoleName}</span>
+                <ChevronDown 
+                  className={`w-4 h-4 text-gray-400 transition-transform duration-200 ml-2 ${
+                    isRoleDropdownOpen ? 'transform rotate-180' : ''
+                  }`} 
+                />
+              </button>
+              
+              {isRoleDropdownOpen && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-50 min-w-[140px]">
+                  <button
+                    onClick={() => handleRoleFilter('ALL', 'Semua Role')}
+                    className={`w-full flex items-center justify-between px-3 py-2 text-left hover:bg-gray-50 transition-colors text-sm border-b border-gray-100 ${
+                      roleFilter === 'ALL' ? 'bg-blue-50 text-blue-700' : 'text-gray-900'
+                    }`}
+                  >
+                    <span>Semua Role</span>
+                    {roleFilter === 'ALL' && (
+                      <Check className="w-4 h-4 text-blue-600" />
+                    )}
+                  </button>
+                  
+                  <button
+                    onClick={() => handleRoleFilter('STUDENT', 'Student')}
+                    className={`w-full flex items-center justify-between px-3 py-2 text-left hover:bg-gray-50 transition-colors text-sm border-b border-gray-100 ${
+                      roleFilter === 'STUDENT' ? 'bg-blue-50 text-blue-700' : 'text-gray-900'
+                    }`}
+                  >
+                    <span>Student</span>
+                    {roleFilter === 'STUDENT' && (
+                      <Check className="w-4 h-4 text-blue-600" />
+                    )}
+                  </button>
+                  
+                  <button
+                    onClick={() => handleRoleFilter('ADMIN', 'Admin')}
+                    className={`w-full flex items-center justify-between px-3 py-2 text-left hover:bg-gray-50 transition-colors text-sm border-b border-gray-100 ${
+                      roleFilter === 'ADMIN' ? 'bg-blue-50 text-blue-700' : 'text-gray-900'
+                    }`}
+                  >
+                    <span>Admin</span>
+                    {roleFilter === 'ADMIN' && (
+                      <Check className="w-4 h-4 text-blue-600" />
+                    )}
+                  </button>
+                  
+                  <button
+                    onClick={() => handleRoleFilter('SUPER_ADMIN', 'Super Admin')}
+                    className={`w-full flex items-center justify-between px-3 py-2 text-left hover:bg-gray-50 transition-colors text-sm ${
+                      roleFilter === 'SUPER_ADMIN' ? 'bg-blue-50 text-blue-700' : 'text-gray-900'
+                    }`}
+                  >
+                    <span>Super Admin</span>
+                    {roleFilter === 'SUPER_ADMIN' && (
+                      <Check className="w-4 h-4 text-blue-600" />
+                    )}
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -348,7 +428,7 @@ export default function AdminUsersPage() {
   )
 }
 
-// User Modal Component
+// User Modal Component with Custom Role Dropdown
 function UserModal({ 
   user, 
   onClose, 
@@ -367,58 +447,89 @@ function UserModal({
   })
   const [loading, setLoading] = useState(false)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (!user && formData.password !== formData.confirmPassword) {
-      alert('Password tidak cocok')
-      return
-    }
+  // Role dropdown states
+  const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false)
+  const [selectedRoleName, setSelectedRoleName] = useState(
+    user?.role === 'SUPER_ADMIN' ? 'Super Admin' : 
+    user?.role === 'ADMIN' ? 'Admin' : 
+    user?.role === 'STUDENT' ? 'Student' : 'Student'
+  )
 
-    setLoading(true)
-
-    try {
-      const url = user 
-        ? `/api/admin/users/${user.id}`
-        : '/api/admin/users'
-      
-      const method = user ? 'PUT' : 'POST'
-
-      const body = user 
-        ? {
-            name: formData.name,
-            email: formData.email,
-            role: formData.role
-          }
-        : {
-            name: formData.name,
-            email: formData.email,
-            role: formData.role,
-            password: formData.password
-          }
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(body),
-      })
-
-      if (response.ok) {
-        onSave()
-        alert(`User berhasil ${user ? 'diupdate' : 'ditambahkan'}`)
-      } else {
-        const errorData = await response.json()
-        alert(errorData.error || `Gagal ${user ? 'mengupdate' : 'menambahkan'} user`)
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const dropdown = document.getElementById('user-role-dropdown')
+      if (dropdown && !dropdown.contains(event.target as Node)) {
+        setIsRoleDropdownOpen(false)
       }
-    } catch (error) {
-      console.error('Failed to save user:', error)
-      alert('Terjadi kesalahan')
-    } finally {
-      setLoading(false)
     }
+
+    if (isRoleDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isRoleDropdownOpen])
+
+
+const handleRoleSelect = (role: 'STUDENT' | 'ADMIN' | 'SUPER_ADMIN', roleName: string) => {
+  setFormData({ ...formData, role })
+  setSelectedRoleName(roleName)
+  setIsRoleDropdownOpen(false)
+}
+
+  // Dalam function UserModal, update bagian handleSubmit
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault()
+  
+  if (!user && formData.password !== formData.confirmPassword) {
+    alert('Password tidak cocok')
+    return
   }
+
+  setLoading(true)
+
+  try {
+    const url = user 
+      ? `/api/admin/users/${user.id}`
+      : '/api/admin/users'
+    
+    const method = user ? 'PUT' : 'POST'
+
+    const body = user 
+      ? {
+          name: formData.name,
+          email: formData.email,
+          role: formData.role as 'STUDENT' | 'ADMIN' | 'SUPER_ADMIN' // Type assertion
+        }
+      : {
+          name: formData.name,
+          email: formData.email,
+          role: formData.role as 'STUDENT' | 'ADMIN' | 'SUPER_ADMIN', // Type assertion
+          password: formData.password
+        }
+
+    const response = await fetch(url, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    })
+
+    if (response.ok) {
+      onSave()
+      alert(`User berhasil ${user ? 'diupdate' : 'ditambahkan'}`)
+    } else {
+      const errorData = await response.json()
+      alert(errorData.error || `Gagal ${user ? 'mengupdate' : 'menambahkan'} user`)
+    }
+  } catch (error) {
+    console.error('Failed to save user:', error)
+    alert('Terjadi kesalahan')
+  } finally {
+    setLoading(false)
+  }
+}
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -454,20 +565,68 @@ function UserModal({
             />
           </div>
 
+          {/* Custom Role Dropdown */}
           <div>
             <label className="block text-sm font-medium text-black mb-2">
               Role *
             </label>
-            <select
-              value={formData.role}
-              onChange={(e) => setFormData({ ...formData, role: e.target.value as any })}
-              required
-              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-black"
-            >
-              <option value="STUDENT">Student</option>
-              <option value="ADMIN">Admin</option>
-              <option value="SUPER_ADMIN">Super Admin</option>
-            </select>
+            <div className="relative" id="user-role-dropdown">
+              <button
+                type="button"
+                onClick={() => setIsRoleDropdownOpen(!isRoleDropdownOpen)}
+                className="w-full flex items-center justify-between p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-black transition-colors hover:bg-gray-50"
+              >
+                <span className="text-left">{selectedRoleName}</span>
+                <ChevronDown 
+                  className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${
+                    isRoleDropdownOpen ? 'transform rotate-180' : ''
+                  }`} 
+                />
+              </button>
+              
+              {isRoleDropdownOpen && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-50">
+                  <button
+                    type="button"
+                    onClick={() => handleRoleSelect('STUDENT', 'Student')}
+                    className={`w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-50 transition-colors border-b border-gray-100 ${
+                      formData.role === 'STUDENT' ? 'bg-blue-50 text-blue-700' : 'text-gray-900'
+                    }`}
+                  >
+                    <span>Student</span>
+                    {formData.role === 'STUDENT' && (
+                      <Check className="w-5 h-5 text-blue-600" />
+                    )}
+                  </button>
+                  
+                  <button
+                    type="button"
+                    onClick={() => handleRoleSelect('ADMIN', 'Admin')}
+                    className={`w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-50 transition-colors border-b border-gray-100 ${
+                      formData.role === 'ADMIN' ? 'bg-blue-50 text-blue-700' : 'text-gray-900'
+                    }`}
+                  >
+                    <span>Admin</span>
+                    {formData.role === 'ADMIN' && (
+                      <Check className="w-5 h-5 text-blue-600" />
+                    )}
+                  </button>
+                  
+                  <button
+                    type="button"
+                    onClick={() => handleRoleSelect('SUPER_ADMIN', 'Super Admin')}
+                    className={`w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-50 transition-colors ${
+                      formData.role === 'SUPER_ADMIN' ? 'bg-blue-50 text-blue-700' : 'text-gray-900'
+                    }`}
+                  >
+                    <span>Super Admin</span>
+                    {formData.role === 'SUPER_ADMIN' && (
+                      <Check className="w-5 h-5 text-blue-600" />
+                    )}
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           {!user && (

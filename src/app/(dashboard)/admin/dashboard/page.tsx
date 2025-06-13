@@ -288,7 +288,7 @@ export default function AdminDashboard() {
                   </div>
                   <div className="ml-3">
                     <h4 className="font-medium text-gray-900">Kelola Users</h4>
-                    <p className="text-sm text-gray-600">Manage user accounts dan roles</p>
+                    <p className="text-sm text-gray-600">Atur akun user dan role</p>
                   </div>
                 </div>
               </Link>
